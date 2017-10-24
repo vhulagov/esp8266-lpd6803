@@ -225,94 +225,13 @@ unsigned int ICACHE_FLASH_ATTR lpd6803_Wheel(uint8_t WheelPos) {
 
 void ICACHE_FLASH_ATTR lpd6803_loop() {
 	switch (lpd6803_mode) {
-	case (LPD6803_MODE_RUNNING_PIXEL):
-		lpd6803_RunningPixel_loop();
-		break;
-	case (LPD6803_MODE_RUNNING_LINE):
-		lpd6803_RunningLine_loop();
-		break;
 	case (LPD6803_MODE_RAINBOW):
 		lpd6803_Rainbow_loop();
 		break;
 	case (LPD6803_MODE_RAINBOW2):
 		lpd6803_Rainbow2_loop();
 		break;
-	case (LPD6803_MODE_SNOW):
-		lpd6803_Snow_loop();
-		break;
-	case (LPD6803_MODE_RGB):
-		lpd6803_RGB_loop();
-		break;
 	}
-}
-
-void ICACHE_FLASH_ATTR lpd6803_RunningLine_loop() {
-	uint16_t i;
-	if (lpd6803_mode_rp_CurrentPixel == 0) {
-		for (i = 0; i < numLEDs; i++) {
-			lpd6803_setPixelColor(i, 0, 0, 0);
-		}
-	}
-
-	if (!lpd6803_mode_rl_initialPixel) {
-		lpd6803_setPixelColorByColor(lpd6803_mode_rp_CurrentPixel,
-				lpd6803_mode_rp_PixelColor);
-		lpd6803_mode_rp_CurrentPixel++;
-	} else {
-		lpd6803_mode_rl_initialPixel = false;
-	}
-
-	if (lpd6803_mode_rp_CurrentPixel >= numLEDs) {
-		lpd6803_mode_rp_CurrentPixel = 0;
-		lpd6803_mode_rl_initialPixel = true;
-	}
-
-	lpd6803_show();
-}
-
-void ICACHE_FLASH_ATTR lpd6803_startRunningLine(uint16_t color) {
-	lpd6803_mode_rp_PixelColor = color;
-	lpd6803_mode_rp_CurrentPixel = 0;
-	lpd6803_mode_rl_initialPixel = true;
-	lpd6803_mode = LPD6803_MODE_RUNNING_LINE;
-	os_timer_disarm(&modeTimer);
-	os_timer_setfn(&modeTimer, (os_timer_func_t *) lpd6803_loop, NULL);
-	os_timer_arm(&modeTimer, 150, 1);
-}
-
-void ICACHE_FLASH_ATTR lpd6803_RunningPixel_loop() {
-	uint16_t i;
-	lpd6803_setPixelColorByColor(lpd6803_mode_rp_CurrentPixel,
-			lpd6803_mode_rp_PixelColor);
-
-	if (lpd6803_mode_rp_CurrentPixel <= 0) {
-		for (i = 1; i < numLEDs; i++) {
-			lpd6803_setPixelColor(i, 0, 0, 0);
-		}
-	} else {
-		for (i = 0; i < numLEDs; i++) {
-			if (i != lpd6803_mode_rp_CurrentPixel) {
-				lpd6803_setPixelColor(i, 0, 0, 0);
-			}
-		}
-	}
-
-	lpd6803_mode_rp_CurrentPixel++;
-
-	if (lpd6803_mode_rp_CurrentPixel >= numLEDs) {
-		lpd6803_mode_rp_CurrentPixel = 0;
-	}
-
-	lpd6803_show();
-}
-
-void ICACHE_FLASH_ATTR lpd6803_startRunningPixel(uint16_t color) {
-	lpd6803_mode_rp_PixelColor = color;
-	lpd6803_mode_rp_CurrentPixel = 0;
-	lpd6803_mode = LPD6803_MODE_RUNNING_PIXEL;
-	os_timer_disarm(&modeTimer);
-	os_timer_setfn(&modeTimer, (os_timer_func_t *) lpd6803_loop, NULL);
-	os_timer_arm(&modeTimer, 150, 1);
 }
 
 void ICACHE_FLASH_ATTR lpd6803_Rainbow_loop() {
@@ -370,43 +289,6 @@ void ICACHE_FLASH_ATTR lpd6803_startRainbow2() {
 	os_timer_disarm(&modeTimer);
 	os_timer_setfn(&modeTimer, (os_timer_func_t *) lpd6803_loop, NULL);
 	os_timer_arm(&modeTimer, 50, 1);
-}
-
-void ICACHE_FLASH_ATTR lpd6803_Snow_loop() {
-	int colors[] = { lpd6803_Color(255, 255, 255), lpd6803_Color(66, 170, 250),
-			lpd6803_Color(0, 0, 255) };
-
-	int j = 0;
-
-	for (int i = lpd6803_mode_rainbow_j; i < numLEDs; i++) {
-		lpd6803_setPixelColorByColor(i, colors[j]);
-		j++;
-		if (j > 2) {
-			j = 0;
-		}
-	}
-
-	for (int i = 0; i < lpd6803_mode_rainbow_j; i++) {
-		lpd6803_setPixelColorByColor(i, colors[j]);
-		j++;
-		if (j > 2) {
-			j = 0;
-		}
-	}
-
-	lpd6803_mode_rainbow_j++;
-	if (lpd6803_mode_rainbow_j > numLEDs) {
-		lpd6803_mode_rainbow_j = 0;
-	}
-	lpd6803_show();
-}
-
-void ICACHE_FLASH_ATTR lpd6803_startSnow() {
-	lpd6803_mode_rainbow_j = 0;
-	lpd6803_mode = LPD6803_MODE_SNOW;
-	os_timer_disarm(&modeTimer);
-	os_timer_setfn(&modeTimer, (os_timer_func_t *) lpd6803_loop, NULL);
-	os_timer_arm(&modeTimer, 150, 1);
 }
 
 void ICACHE_FLASH_ATTR lpd6803_RGB_loop() {
