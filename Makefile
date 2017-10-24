@@ -11,15 +11,14 @@ BUILD_BASE	= build
 FW_BASE		= firmware
 
 # Base directory for the compiler
-XTENSA_TOOLS_ROOT ?= c:/Espressif/xtensa-lx106-elf/bin
+XTENSA_TOOLS_ROOT ?= /home/lacitis/ELECTRONICS/esp8266/esp-open-sdk/xtensa-lx106-elf/bin/
 
 # base directory of the ESP8266 SDK package, absolute
-SDK_BASE	?= c:/Espressif/ESP8266_SDK
+SDK_BASE	?= /home/lacitis/ELECTRONICS/esp8266/esp-open-sdk/
 
 #Esptool.py path and port
-PYTHON		?= C:\Python27\python.exe
-ESPTOOL		?= c:\Espressif\utils\esptool.py
-ESPPORT		?= COM2
+ESPTOOL		?= esptool.py
+ESPPORT		?= /dev/ttyUSB0
 
 # name for the target project
 TARGET		= app
@@ -27,12 +26,13 @@ TARGET		= app
 # which modules (subdirectories) of the project to include in compiling
 MODULES		= driver user
 EXTRA_INCDIR    = include $(SDK_BASE)/../include
+EXTRA_INCDIR    += include $(SDK_BASE)/xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/include/
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa main
 
 # compiler flags using during compilation of source files
-CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -std=c99
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
@@ -42,7 +42,7 @@ LD_SCRIPT	= eagle.app.v6.ld
 
 # various paths from the SDK used in this project
 SDK_LIBDIR	= lib
-SDK_LDDIR	= ld
+SDK_LDDIR	= /xtensa-lx106-elf/xtensa-lx106-elf/sysroot/usr/lib/
 SDK_INCDIR	= include include/json
 
 # we create two different files for uploading into the flash
@@ -60,7 +60,7 @@ LD		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
 ####
 #### no user configurable options below here
 ####
-FW_TOOL		?= $(XTENSA_TOOLS_ROOT)/esptool
+FW_TOOL		?= /usr/bin/esptool
 SRC_DIR		:= $(MODULES)
 BUILD_DIR	:= $(addprefix $(BUILD_BASE)/,$(MODULES))
 
@@ -128,12 +128,10 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: firmware/0x00000.bin firmware/0x40000.bin
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin
+	$(ESPTOOL) --port $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin
 
 test: flash
 	screen $(ESPPORT) 115200
-
-rebuild: clean all
 
 clean:
 	$(Q) rm -f $(APP_AR)

@@ -1,3 +1,5 @@
+#include "espmissingincludes.h"
+#include "user_interface.h"
 #include "user_config.h"
 #include "ets_sys.h"
 #include "osapi.h"
